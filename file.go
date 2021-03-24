@@ -24,7 +24,81 @@ type File struct {
 	Sheet          map[string]*Sheet
 	theme          *theme
 	DefinedNames   []*xlsxDefinedName
+	*Properties
 }
+
+type Properties struct {
+	ApplicationName    string
+	Title              string
+	Subject            string
+	Keywords           string
+	Category	       string
+	Description        string
+	Creator            string
+	LastModifiedBy     string
+}
+
+func NewProperties()*Properties{
+	return &Properties{}
+}
+
+func (f *Properties)SetApplicationName(name string)*Properties{
+	f.ApplicationName = name
+	return f
+}
+
+func (f *Properties)SetTitle(title string) *Properties{
+	f.Title = title
+	return f
+}
+
+func (f *Properties)SetSubject(subject string)*Properties{
+	f.Subject = subject
+	return f
+}
+
+func (f *Properties)SetKeywords(keywords string)*Properties{
+	f.Keywords = keywords
+	return f
+}
+
+func (f *Properties)SetCategory(category string)*Properties{
+	f.Category = category
+	return f
+}
+
+func (f *Properties)SetDescription(description string)*Properties{
+	f.Description = description
+	return f
+}
+
+func (f *Properties)SetCreator(creator string)*Properties{
+	f.Creator = creator
+	return f
+}
+
+func (f *Properties)SetLastModifiedBy(lastModifiedBy string)*Properties{
+	f.LastModifiedBy = lastModifiedBy
+	return f
+}
+
+func (f *Properties)formatTemplateDOCPropsApp()string{
+	if len(f.ApplicationName) != 0 {
+		return fmt.Sprintf(TemplateDOCPropsApp,f.ApplicationName)
+	}
+	return fmt.Sprintf(TemplateDOCPropsApp,"GO XLSX")
+}
+
+func (f *Properties)formatTemplateDOCPropsCore()string{
+	data := fmt.Sprintf(TemplateDOCPropsCore,f.Title,f.Subject,f.Keywords,f.Category,f.Description,f.Creator,f.LastModifiedBy)
+	return strings.Replace(data,"%v","",-1)
+}
+
+func (f *File)SetProperties()*Properties{
+	f.Properties = &Properties{}
+	return f.Properties
+}
+
 
 const NoRowLimit int = -1
 
@@ -299,15 +373,16 @@ func (f *File) MarshallParts() (map[string]string, error) {
 	}
 	workbookMarshal = replaceRelationshipsNameSpace(workbookMarshal)
 	parts["xl/workbook.xml"] = workbookMarshal
-	if err != nil {
-		return parts, err
+
+	if f.Properties == nil {
+		f.Properties = NewProperties()
 	}
 
-	parts["_rels/.rels"] = TEMPLATE__RELS_DOT_RELS
-	parts["docProps/app.xml"] = TEMPLATE_DOCPROPS_APP
+	parts["_rels/.rels"] = TemplateRELSDotRELS
+	parts["docProps/app.xml"] = f.formatTemplateDOCPropsApp()
 	// TODO - do this properly, modification and revision information
-	parts["docProps/core.xml"] = TEMPLATE_DOCPROPS_CORE
-	parts["xl/theme/theme1.xml"] = TEMPLATE_XL_THEME_THEME
+	parts["docProps/core.xml"] = f.formatTemplateDOCPropsCore()
+	parts["xl/theme/theme1.xml"] = TemplateXLTheMeTheMe
 
 	xSST := refTable.makeXLSXSST()
 	parts["xl/sharedStrings.xml"], err = marshal(xSST)

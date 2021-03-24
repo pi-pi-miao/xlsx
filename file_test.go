@@ -5,9 +5,58 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"testing"
 
 	. "gopkg.in/check.v1"
 )
+
+func TestFile_Save(t *testing.T) {
+	file := NewFile()
+
+	//file.SetProperties().
+	//	SetApplicationName("demo").
+	//	SetTitle("message").
+	//	SetSubject("message list").
+	//	SetKeywords("key").
+	//	SetCategory("test").
+	//	SetDescription("just test message").
+	//	SetCreator("pi-pi-miao").
+	//	SetLastModifiedBy("pi-pi-miao")
+
+	sheet, err := file.AddSheet("person list")
+	if err != nil {
+		t.Errorf("add sheet err:%v",err)
+		return
+	}
+
+	row := sheet.AddRow()
+	cell := row.AddCell()
+	//cell.SetString("hello ")
+	cell.Value = "name"
+	cell = row.AddCell()
+	cell.Value = "gender"
+	cell = row.AddCell()
+	cell.Value = "message"
+
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.Value = "alice"
+	cell = row.AddCell()
+	cell.Value = "male"
+	cell = row.AddCell()
+	cell.Value = "github.com/pi-pi-miao"
+
+
+	err = file.Save("pi-pi-miao.xlsx")
+	if err != nil {
+		t.Errorf("save err :%v",err)
+		return
+	}
+
+	t.Log(file.Properties)
+}
+
+
 
 // ReaderAtCounter wraps a ReaderAt and counts the number of bytes that are read out of it
 type ReaderAtCounter struct {
